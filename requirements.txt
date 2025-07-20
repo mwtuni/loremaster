@@ -1,3 +1,4 @@
 openai==1.51.0
 pyttsx3==2.90
 httpx==0.27.0
+pyinstaller==6.14.2
