@@ -1,7 +1,7 @@
 # LoreMaster Plugin for NVIDIA G-Assist
 
 **Talk to your favorite game characters using natural language.**
-LoreMaster brings characters like Cloud, Aerith, and Vincent from *Final Fantasy VII* to life using voice synthesis and GPT-4o integration. Ask lore questions, request puzzle solutions, or just challenge Cloud about his oversized sword.
+LoreMaster brings game characters to life using voice synthesis and GPT-4o integration. Ask lore questions, request puzzle solutions, or just challenge Cloud about his oversized sword.
 
 Built in under 24 hours for the [NVIDIA Project G-Assist Hackathon](https://developer.nvidia.com/g-assist-hackathon)
 Tag: `#AIonRTXHackathon` • Twitter: [@NVIDIAGeForce](https://twitter.com/NVIDIAGeForce)
