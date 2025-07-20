@@ -65,7 +65,7 @@ dist/
 
 To make the plugin available to G-Assist:
 
-**Copy the contents of `dist\loremaster\` to:**
+**Copy `dist\loremaster` to:**
 
 ```
 %PROGRAMDATA%\NVIDIA Corporation\nvtopps\rise\plugins\
@@ -79,7 +79,7 @@ To make the plugin available to G-Assist:
 2. Run:
 
 ```cmd
-xcopy dist\loremaster\* "%PROGRAMDATA%\NVIDIA Corporation\nvtopps\rise\plugins\" /E /Y
+xcopy dist\loremaster "%PROGRAMDATA%\NVIDIA Corporation\nvtopps\rise\plugins\" /E /Y
 ```
 
 Or copy the files manually using File Explorer (you’ll be prompted for admin access).
