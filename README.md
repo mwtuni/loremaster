@@ -6,6 +6,8 @@ LoreMaster brings game characters to life using voice synthesis and GPT-4o integ
 Built in under 24 hours for the [NVIDIA Project G-Assist Hackathon](https://developer.nvidia.com/g-assist-hackathon)
 Tag: `#AIonRTXHackathon` • Twitter: [@NVIDIAGeForce](https://twitter.com/NVIDIAGeForce)
 
+![Cloud holding a sword](resources/cloud_holding_a_sword.png)
+
 ---
 
 ## Features
