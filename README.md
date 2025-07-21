@@ -9,7 +9,7 @@ Tag: `#AIonRTXHackathon` • Twitter: [@NVIDIAGeForce](https://twitter.com/NVIDI
 ---
 
 ## Features
-
+* Queries via chat or speech (NVIDIA NeMo STT, ALT+V)
 * Voice-enabled character responses using `pyttsx3`
 * Accurate responses for in-game details (e.g., puzzle solutions, unlock codes)
 * Switch response style (e.g., sarcastic, serious, emotional)
@@ -90,11 +90,8 @@ Or copy the files manually using File Explorer (you’ll be prompted for admin a
 
 ```text
 /loremaster cloud of ff7, what about the sword?! compensating much?
-
 /loremaster vincent of ff7, tell me the correct notes to unlock your ultimate weapon
-
 /loremaster aerith, what do you really think about the sword?
-
 /loremaster set style sarcastic
 /loremaster cloud, do you even know how to use that thing?
 ```
@@ -104,6 +101,12 @@ Or copy the files manually using File Explorer (you’ll be prompted for admin a
 ## Demo Video
 
 https://youtu.be/gzQvNmVxp_8
+
+---
+
+## Next Steps (after hackathon)
+* Local LLM Integration via Ollama: Enable users to leverage powerful, locally-hosted LLMs through Ollama for improved privacy, reduced latency, and offline capabilities.
+* Vision-Language Model (VLM) Integration: Introduce advanced visual interaction by integrating a VLM that interacts directly with the game screen, enabling richer, context-aware conversations with game characters based on in-game visuals.
 
 ---
 
@@ -123,7 +126,7 @@ https://youtu.be/gzQvNmVxp_8
 
 ## Author
 
-Built by Mika Wilén
+Built by Mika Wilén, aka. mwtuni
 Repo: [https://github.com/mwtuni/loremaster](https://github.com/mwtuni/loremaster)
 
 ---
