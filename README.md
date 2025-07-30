@@ -101,9 +101,17 @@ https://youtu.be/gzQvNmVxp_8
 
 ---
 
-## Next Steps (after hackathon)
-* Local LLM Integration via Ollama: Enable users to leverage powerful, locally-hosted LLMs through Ollama for improved privacy, reduced latency, and offline capabilities.
-* Vision-Language Model (VLM) Integration: Introduce advanced visual interaction by integrating a VLM that interacts directly with the game screen, enabling richer, context-aware conversations with game characters based on in-game visuals.
+## Dev branch features update:
+
+Development continues in the dev branch with new features that go beyond the original 1-day hackathon build.
+
+Latest update:
+
+Support for Ollama as a fallback when OPENAI_API_KEY is not set.
+
+This allows users to run LoreMaster privately and offline (requires Ollama installed and running).
+
+This enhancement enables private, local communication with characters, improving accessibility and reducing reliance on external APIs.
 
 ---
 
