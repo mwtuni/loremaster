@@ -101,17 +101,25 @@ https://youtu.be/gzQvNmVxp_8
 
 ---
 
-## Dev branch features update:
+## Dev branch features:
 
 Development continues in the dev branch with new features that go beyond the original 1-day hackathon build.
 
 Latest update:
 
-Support for Ollama as a fallback when OPENAI_API_KEY is not set.
-
+* Support for Ollama as a fallback when OPENAI_API_KEY is not set.
 This allows users to run LoreMaster privately and offline (requires Ollama installed and running).
-
 This enhancement enables private, local communication with characters, improving accessibility and reducing reliance on external APIs.
+
+---
+
+## Developer Notes 
+
+The plugin generates a loremaster.log file in the plugin directory. This log captures all protocol messages and can be useful for debugging and understanding G-Assist communication.
+
+Developers can set the environment variable SELFTEST=1 and run the plugin directly with Python (plugin.py) to test functionality without G-Assist.
+
+This is especially helpful for rapid prototyping and testing alternative models or configurations during development.
 
 ---
 
