@@ -8,6 +8,10 @@ import re
 from datetime import datetime
 from ctypes import byref, windll, wintypes
 from queue import Queue
+import base64
+from PIL import ImageGrab
+from io import BytesIO
+import ollama
 
 # Suppress excessive debug logs from comtypes and pyttsx3 internals
 for noisy_module in ["comtypes", "pyttsx3.drivers", "comtypes.client._events"]:
@@ -46,7 +50,7 @@ class LLMHandler:
             except json.JSONDecodeError:
                 log_event("Error decoding config.json. OPENAI_API_KEY not set.")
 
-        self.ollama_model = "llama3.2"
+        self.ollama_model = "llava:13b"
         self.client = None
         self.use_openai = False
 
@@ -91,6 +95,21 @@ class Plugin:
         self.active_character = None
         self.active_game = None
 
+    def capture_and_encode_screenshot(self):
+        """Capture a screenshot, resize it to 512x512, and encode it in Base64."""
+        try:
+            screenshot = ImageGrab.grab()
+            resized_screenshot = screenshot.resize((512, 512))  # Reduce resolution
+            buffer = BytesIO()
+            resized_screenshot.save(buffer, format="JPEG", quality=50)  # Use JPEG with reduced quality
+            buffer.seek(0)
+            base64_screenshot = base64.b64encode(buffer.getvalue()).decode("utf-8")
+            log_event("Screenshot captured, resized, and encoded successfully.")
+            return base64_screenshot
+        except Exception as e:
+            log_event(f"Error capturing or encoding screenshot: {e}")
+            return None
+
     def parse_message(self, natural_input):
         system_prompt = """
         Your task is to extract structured data from a natural language question to a video game character.
@@ -131,12 +150,65 @@ class Plugin:
             log_event(f"Falling back to: {fallback}")
             return fallback
 
+    def analyze_screen(self, user_query, character_info):
+        """Analyze the screen using LLAVA while maintaining character role."""
+        # Capture and encode the screenshot
+        image_b64 = self.capture_and_encode_screenshot()
+        if not image_b64:
+            return "Failed to capture or process the screen image."
+
+        # Create a character-aware prompt for LLAVA
+        character_prompt = f"""You are {character_info['character']} from {character_info['game']}. 
+        Analyze this screenshot and respond as this character would. 
+        Stay completely in character while describing what you see on the screen.
+        Keep your response natural and in the character's voice.
+        
+        User asks: {user_query}"""
+
+        # For Ollama, images are passed directly in the messages array
+        messages = [
+            {
+                "role": "user", 
+                "content": character_prompt,
+                "images": [image_b64]  # Pass the base64 image data directly
+            }
+        ]
+
+        # Send the request to LLAVA via Ollama
+        try:
+            response = ollama.chat(model="llava", messages=messages)
+            return response["message"]["content"]
+        except Exception as e:
+            log_event(f"Error in analyze_screen(): {e}")
+            return "An error occurred while analyzing the screen."
+
     def talk(self, params):
         user_input = params.get("input", "")
         log_event(f"Input received: {user_input}")
 
+        # Parse the message first to get character info
         parsed = self.parse_message(user_input)
 
+        # Check if the query asks about the screen
+        if "on the screen" in user_input.lower() or "in the image" in user_input.lower():
+            log_event("Screen-related query detected. Using LLAVA for analysis.")
+            
+            # Update context if character changed
+            if parsed["character"] != self.active_character or parsed["game"] != self.active_game:
+                log_event(f"Context switched from {self.active_character}/{self.active_game} to {parsed['character']}/{parsed['game']}. Resetting history.")
+                self.chat_history = []
+                self.active_character = parsed["character"]
+                self.active_game = parsed["game"]
+            
+            # Analyze screen while maintaining character role
+            screen_response = self.analyze_screen(parsed["message"], parsed)
+            
+            response = {"success": True, "message": screen_response}
+            write_response(response)
+            speech_queue.put((screen_response, parsed.get('sex', '').lower() == 'female'))
+            return None
+
+        # Continue with normal processing for non-screen queries
         if parsed["message"].lower().startswith("set style "):
             self.conversation_style = parsed["message"][10:].strip()
             log_event(f"Conversation style set to: {self.conversation_style}")
@@ -313,7 +385,7 @@ def selftest():
     log_event("Running selftest...")
     try:
         # Example input for testing
-        example_input = {"input": "Ask Ciri from Witcher what she thinks about destiny."}
+        example_input = {"input": "Ask Ciri from Witcher which weapons she is wielding and what her outfit is in the screen. Also describe your pose."}
 
         # Create an instance of the Plugin class
         plugin = Plugin()
