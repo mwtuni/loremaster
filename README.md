@@ -65,26 +65,21 @@ dist/
 
 ### 3. Install the Plugin in G-Assist
 
-To make the plugin available to G-Assist:
+To make the plugin available to G-Assist you have to place it into plugins folder.
 
-**Copy `dist\loremaster` to:**
-
-```
-%PROGRAMDATA%\NVIDIA Corporation\nvtopps\rise\plugins\
-```
-
-> This step requires administrator privileges.
-
-#### Instructions
-
-1. Open Command Prompt as Administrator
-2. Run:
-
-```cmd
-xcopy dist\loremaster "%PROGRAMDATA%\NVIDIA Corporation\nvtopps\rise\plugins\" /E /Y
+**Open administrator command prompt**
+```text
+powershell -Command "Start-Process cmd -ArgumentList ('/k cd /d \"' + (Get-Location).Path + '\"') -Verb RunAs"
 ```
 
-Or copy the files manually using File Explorer (you’ll be prompted for admin access).
+**In administrator command prompt, copy `dist\loremaster` to plugins**
+```text
+xcopy "dist\loremaster" "%PROGRAMDATA%\NVIDIA Corporation\nvtopps\rise\plugins\loremaster" /E /I /Y
+```
+
+Or copy the files manually using File Explorer (you’ll be prompted for admin access). 
+
+Restart G-Assist to enable the plugin.
 
 ---
 
