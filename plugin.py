@@ -87,7 +87,6 @@ class Plugin:
     def __init__(self):
         self.llm_handler = LLMHandler()
         self.chat_history = []
-        self.conversation_style = None
         self.active_character = None
         self.active_game = None
 
@@ -137,20 +136,14 @@ class Plugin:
 
         parsed = self.parse_message(user_input)
 
-        if parsed["message"].lower().startswith("set style "):
-            self.conversation_style = parsed["message"][10:].strip()
-            log_event(f"Conversation style set to: {self.conversation_style}")
-            return {"success": True, "message": f"Style set to '{self.conversation_style}'"}
-
         if parsed["character"] != self.active_character or parsed["game"] != self.active_game:
             log_event(f"Context switched from {self.active_character}/{self.active_game} to {parsed['character']}/{parsed['game']}. Resetting history.")
             self.chat_history = []
             self.active_character = parsed["character"]
             self.active_game = parsed["game"]
 
-        style_prompt = f" Speak in a {self.conversation_style} style." if self.conversation_style else ""
         system_prompt = f"""
-        You are {parsed['character']} from {parsed['game']}.{style_prompt}
+        You are {parsed['character']} from {parsed['game']}.
         Respond fully in character and keep the tone natural, using knowledge and voice appropriate to the character.
         If the user asks for a specific fact or game-related detail (such as item locations, codes, puzzle solutions, or mechanics), always give the exact, correct answer as clearly as possible.
         If the user is asking for a lore opinion, emotional reflection, or casual dialogue, stay immersive and in character.
@@ -172,7 +165,7 @@ class Plugin:
         try:
             log_event(f"Sending chat completion with messages: {messages}")
             reply = self.llm_handler.chat(messages)
-            self.chat_history.append({"role": "assistant", "content": reply, "style": self.conversation_style})
+            self.chat_history.append({"role": "assistant", "content": reply})
             log_event(f"Generated reply: {reply}")
 
             response = {"success": True, "message": reply}
@@ -336,7 +329,7 @@ def selftest():
     # Add a delay to allow the speech thread to finish
     log_event("Waiting for speech thread to complete...")
     import time
-    time.sleep(50)
+    time.sleep(10)
     log_event("Selftest completed.")
 
 if __name__ == "__main__":
