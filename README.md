@@ -1,9 +1,9 @@
 # LoreMaster Plugin for NVIDIA G-Assist
 
 **Talk to your favorite game characters using natural language.**
-LoreMaster brings game characters to life using voice synthesis and GPT-4o integration. Ask lore questions, request puzzle solutions, or just challenge Cloud about his oversized sword.
+LoreMaster brings game characters to life using real-time voice synthesis, GPT-4o or Ollama-based LLMs, and now Vision-Language Models (VLMs). Ask lore questions, request puzzle solutions, or challenge Cloud about his oversized sword — — and if the question requires it, game characters can literally see your screen. Ask things like, “Look at that — what monster is it?!”
 
-Built in under 24 hours for the [NVIDIA Project G-Assist Hackathon](https://developer.nvidia.com/g-assist-hackathon)
+Built in under 24 hours for the [NVIDIA Project G-Assist Hackathon](https://developer.nvidia.com/g-assist-hackathon), but still evolving here in dev!
 Tag: `#AIonRTXHackathon` • Twitter: [@NVIDIAGeForce](https://twitter.com/NVIDIAGeForce)
 
 ![Cloud holding a sword](resources/cloud_holding_a_sword.png)
@@ -12,11 +12,14 @@ Tag: `#AIonRTXHackathon` • Twitter: [@NVIDIAGeForce](https://twitter.com/NVIDI
 
 ## Features
 * Queries via chat or speech (NVIDIA NeMo STT, ALT+V)
-* Voice-enabled character responses using `pyttsx3`
+* Voice-enabled character responses using pyttsx3
 * Accurate responses for in-game details (e.g., puzzle solutions, unlock codes)
-* Switch response style (e.g., sarcastic, serious, emotional)
+* Character-specific personalities and response styles (e.g., sarcastic, emotional)
 * Maintains character/game context across messages
-* LLM-powered character emulation using OpenAI GPT-4o
+* LLM-powered character emulation using GPT-4o or local Ollama models
+* Vision support with screenshot analysis (VLM): Ask questions like "what's on the screen?"
+* Smart routing: LoreMaster detects if vision is required and uses the VLM if configured
+* Configurable model backend: Mix and match OpenAI (cloud) or Ollama (local) for LLM + VLM
 * Compatible with G-Assist JSON protocol
 
 ---
@@ -65,19 +68,9 @@ dist/
 
 ### 3. Install the Plugin in G-Assist
 
-To make the plugin available to G-Assist you have to place it into plugins folder.
-
-**Open administrator command prompt**
 ```text
-powershell -Command "Start-Process cmd -ArgumentList ('/k cd /d \"' + (Get-Location).Path + '\"') -Verb RunAs"
+deploy.bat
 ```
-
-**In administrator command prompt, copy `dist\loremaster` to plugins**
-```text
-xcopy "dist\loremaster" "%PROGRAMDATA%\NVIDIA Corporation\nvtopps\rise\plugins\loremaster" /E /I /Y
-```
-
-Or copy the files manually using File Explorer (you’ll be prompted for admin access). 
 
 Restart G-Assist to enable the plugin.
 
@@ -91,6 +84,7 @@ Restart G-Assist to enable the plugin.
 /loremaster aerith, what do you really think about the sword?
 /loremaster set style sarcastic
 /loremaster cloud, do you even know how to use that thing?
+/loremaster what monster is that?
 ```
 
 ---
@@ -103,13 +97,35 @@ https://youtu.be/gzQvNmVxp_8
 
 ## Dev branch features:
 
-Development continues in the dev branch with new features that go beyond the original 1-day hackathon build.
+Development continues in the dev branch with major architectural updates:
 
-Latest update:
+* Modular plugin design using classes:
+LLMHandler, VLMHandler, SpeechEngine, MessageParser, CharacterManager, PipeHandler, and ConversationHandler
 
-* Support for Ollama as a fallback when OPENAI_API_KEY is not set.
-This allows users to run LoreMaster privately and offline (requires Ollama installed and running).
-This enhancement enables private, local communication with characters, improving accessibility and reducing reliance on external APIs.
+* Flexible backend configuration:
+Use OpenAI or Ollama for both LLM and VLM
+
+* Mix providers (e.g., OpenAI GPT-4o + Ollama LLava VLM)
+
+* Vision-Aware Character Dialogue:
+VisionHandler captures screenshots and sends them to the configured VLM
+
+* Characters stay in voice/personality while referencing visual elements
+Intelligent routing: LoreMaster determines when vision is required via LLM parsing (not just keywords)
+
+* New config.json options:
+{
+  "llm_provider": "openai" | "ollama",
+  "vision_provider": "openai" | "ollama",
+  "openai_vision_model": "gpt-4o",
+  "ollama_vision_model": "llava:13b",
+  "screenshot_size": [640, 480],
+  "screenshot_quality": 85
+}
+
+* Improved context handling:
+Full memory continuity across both text and vision messages
+Responses remain immersive and reactive based on both chat and screen state
 
 ---
 
