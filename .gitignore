@@ -1,3 +1,5 @@
 .venv
 build
 loremaster.log
+loremaster_vlm.png
+*.log

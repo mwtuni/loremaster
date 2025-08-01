@@ -8,6 +8,10 @@ Tag: `#AIonRTXHackathon` • Twitter: [@NVIDIAGeForce](https://twitter.com/NVIDI
 
 ![Cloud holding a sword](resources/cloud_holding_a_sword.png)
 
+![Lara with a foe](resources/lara_with_a_foe.png)
+
+![Pacman with Pinky](resources/pacman_with_pinky.png)
+
 ---
 
 ## Features
@@ -217,6 +221,24 @@ Repo: [https://github.com/mwtuni/loremaster](https://github.com/mwtuni/loremaste
 
 ---
 
-## License
+## License and Commercial Use
 
-This project is licensed under the MIT License. See `LICENSE` file for details.
+LoreMaster is released under the MIT License for personal and non-commercial use.
+
+### Commercial Use Requires a License
+
+If you intend to use LoreMaster in a commercial product, resale, hosted service, or any monetized application, you must obtain a commercial license from the author.
+
+**Contact:** mika.wilen.tuni@gmail.com
+
+You are free to:
+- Fork, modify, and share the code for non-commercial purposes
+- Use the plugin privately or within personal projects
+- Build demos, content, or mods using LoreMaster in a non-monetized way
+
+But you **may not**:
+- Sell or monetize forks of LoreMaster
+- Integrate LoreMaster into commercial services or products without a license
+- Use the LoreMaster name or branding to imply endorsement of unofficial versions
+
+See [`COMMERCIAL.md`](COMMERCIAL.md) for full terms.

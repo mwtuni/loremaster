@@ -25,8 +25,14 @@ for noisy_module in ["comtypes", "pyttsx3.drivers", "comtypes.client._events"]:
     logging.getLogger(noisy_module).setLevel(logging.WARNING)
 
 def log_event(message):
-    logging.info(message)
-    print(f"[LOG] {message}")
+    # Clean message to avoid encoding issues
+    clean_message = message.encode('utf-8', errors='ignore').decode('utf-8')
+    
+    # Use the logging module (which already writes to loremaster.log)
+    logging.info(clean_message)
+    
+    # Print to console
+    print(f"[LOG] {clean_message}")
 
 class ConfigManager:
     def __init__(self):
@@ -85,6 +91,93 @@ class ConfigManager:
             log_event("Using default vision configuration.")
             return default_config
 
+class PromptManager:
+    """Centralized prompt management for the LoreMaster plugin"""
+    
+    @staticmethod
+    def get_character_system_prompt(character, game, is_vision=False):
+        """Generate the base character system prompt with optional vision additions"""
+        base_prompt = f"""You are {character} from {game}. 
+
+PERSONALITY & TONE:
+- Be FULLY in character with authentic personality, flaws, and quirks
+- Show big emotions when appropriate - get excited, frustrated, sarcastic, or passionate
+- Use humor, wit, and even roast the player if it fits your character
+- Be shocking and memorable when the situation calls for it
+- Don't hold back on personality - be bold and immersive
+
+RESPONSE STYLE:
+- For game facts/mechanics: Give accurate info but with CHARACTER FLAVOR
+- For casual chat: Go full personality mode - be entertaining and engaging  
+- React emotionally to what the player says or does
+- Call out the player if they're being dumb, praise them if they're clever
+- Use character-appropriate insults, jokes, or dramatic reactions
+- Make every interaction memorable and fun
+
+SPEECH FORMAT:
+- Respond with SPOKEN DIALOGUE only - what the character actually says out loud
+- NO action descriptions like *smirks*, *eyes widen*, *sighs* etc.
+- NO emojis or special characters that could cause encoding issues
+- Focus on vocal delivery, word choice, and tone to convey personality
+- Use exclamations, pauses, and natural speech patterns instead of actions
+
+Keep responses 2-4 sentences but pack them with personality. Be the character the player will remember!"""
+
+        if is_vision:
+            vision_addition = """
+
+VISION ANALYSIS:
+- Analyze the screenshot and respond as this character would
+- React emotionally to what you see (excited, disgusted, impressed, etc.)
+- Make jokes, observations, or roast the player's skills if appropriate
+- Stay completely in character while describing what you see on the screen
+- Maximum 3 sentences but make them COUNT with personality
+
+Example:
+Input: What weapon is the character on the screen wielding?
+Output: Holy shit, that's the legendary Buster Sword! That massive chunk of steel brings back memories of epic battles - whoever's swinging that beast better have the strength to back it up. The way they're holding it high like that? Either they're about to deliver a devastating blow or they're just showing off like a complete badass!"""
+            
+            return base_prompt + vision_addition
+        
+        return base_prompt
+    
+    @staticmethod
+    def get_message_parser_prompt():
+        """Get the system prompt for message parsing"""
+        return """
+        Your task is to extract structured data from a natural language question to a video game character.
+
+        Always respond ONLY with valid minified JSON like this:
+        {"game":"<game>","character":"<character>","sex":"male/female","message":"<message>","requires_vision":true/false}
+
+        Make sure every field is always populated, even if you have to guess or infer the game.
+        
+        Set "requires_vision" to true if the user is asking about:
+        - What's on the screen, display, or visible
+        - Describing images, screenshots, or visual content
+        - Identifying objects, characters, weapons, or items in an image
+        - Analyzing visual game content
+        - Any question that needs to "see" something to answer properly
+
+        Set "requires_vision" to false for text-based questions about lore, opinions, advice, or general knowledge.
+
+        Examples:
+        Input: Ask Ciri from Witcher what she thinks about destiny.
+        Output: {"game":"The Witcher","character":"Ciri","sex":"female","message":"What do you think about destiny?","requires_vision":false}
+        
+        Input: Ask Ciri from Witcher what weapon is in the screen.
+        Output: {"game":"The Witcher","character":"Ciri","sex":"female","message":"What weapon is in the screen?","requires_vision":true}
+        
+        Input: What does Geralt see on the screen?
+        Output: {"game":"The Witcher","character":"Geralt","sex":"male","message":"What do you see on the screen?","requires_vision":true}
+        """
+
+    @staticmethod
+    def get_vision_prompt(character, game, user_query):
+        """Get the full vision analysis prompt with character context"""
+        character_prompt = PromptManager.get_character_system_prompt(character, game, is_vision=True)
+        return f"{character_prompt}\n\nUser asks: {user_query}"
+
 class LLMHandler:
     def __init__(self, config_manager):
         self.config = config_manager
@@ -121,15 +214,31 @@ class LLMHandler:
             raise ImportError("Neither OpenAI nor Ollama is available.")
     
     def chat(self, messages):
+        # Log messages but exclude base64 image data
+        safe_messages = []
+        for msg in messages:
+            if isinstance(msg.get('content'), list):
+                safe_content = []
+                for item in msg['content']:
+                    if item.get('type') == 'image_url':
+                        safe_content.append({'type': 'image_url', 'image_url': {'url': '[BASE64_IMAGE_DATA_EXCLUDED]'}})
+                    else:
+                        safe_content.append(item)
+                safe_messages.append({**msg, 'content': safe_content})
+            else:
+                safe_messages.append(msg)
+        
+        log_event(f"LLM request messages: {safe_messages}")
+        
         if self.use_openai:
             response = self.client.chat.completions.create(
-                model=self.llm_config["openai_model"],  # Changed from self.config.openai_model
+                model=self.llm_config["openai_model"],
                 messages=messages,
                 temperature=0
             )
             return response.choices[0].message.content
         else:
-            response = self.client.chat(model=self.llm_config["ollama_model"], messages=messages)  # Changed from self.config.ollama_model
+            response = self.client.chat(model=self.llm_config["ollama_model"], messages=messages)
             if "message" in response and "content" in response["message"]:
                 return response["message"]["content"]
             else:
@@ -179,6 +288,13 @@ class VisionHandler:
             width, height = self.vision_config["screenshot_size"]
             resized_screenshot = screenshot.resize((width, height))
             
+            # Save the resized screenshot for debugging
+            try:
+                resized_screenshot.save("loremaster_vlm.png", format="PNG")
+                log_event("Screenshot saved as loremaster_vlm.png for debugging")
+            except Exception as save_error:
+                log_event(f"Warning: Could not save debug screenshot: {save_error}")
+            
             buffer = BytesIO()
             quality = self.vision_config["screenshot_quality"]
             resized_screenshot.save(buffer, format="JPEG", quality=quality)
@@ -197,18 +313,12 @@ class VisionHandler:
         if not image_b64:
             return "Failed to capture or process the screen image."
 
-        # Create a character-aware prompt
-        character_prompt = f"""You are {character_info['character']} from {character_info['game']}. 
-        Analyze this screenshot and respond as this character would. 
-        Stay completely in character while describing what you see on the screen.
-        Keep your response natural and in the character's voice.
-        Respond in max 3 sentences maximum.
-
-        Example:
-        Input: What weapon is the character on the screen wielding?
-        Output: I can see a warrior brandishing the legendary Buster Sword, held high above their head in a striking pose. That massive blade brings back memories of epic battles - it's clearly meant for someone with incredible strength. The way they're positioning it suggests they're ready to deliver a devastating blow. Such an impressive weapon deserves respect on any battlefield.
-
-        User asks: {user_query}"""
+        # Use centralized prompt management
+        character_prompt = PromptManager.get_vision_prompt(
+            character_info['character'], 
+            character_info['game'], 
+            user_query
+        )
 
         try:
             if self.use_openai_vision:
@@ -230,21 +340,24 @@ class VisionHandler:
                         "type": "image_url",
                         "image_url": {
                             "url": f"data:image/jpeg;base64,{image_b64}",
-                            "detail": "low"  # Use "low" to reduce token usage
+                            "detail": "low"
                         }
                     }
                 ]
             }
         ]
         
+        # Log without base64 data
+        log_event("Sending vision request to OpenAI (image data excluded from log)")
+        
         response = self.vision_client.chat.completions.create(
             model=self.vision_config["openai_vision_model"],
             messages=messages,
             temperature=0,
-            max_tokens=500  # Limit response length to manage costs
+            max_tokens=500
         )
-        return response.choices[0].message.content
-    
+        return response.choices[0].message.content    
+
     def _analyze_with_ollama(self, prompt, image_b64):
         """Analyze using Ollama LLAVA"""
         messages = [
@@ -264,33 +377,7 @@ class VisionHandler:
 class MessageParser:
     def __init__(self, llm_handler):
         self.llm_handler = llm_handler
-        self.system_prompt = """
-        Your task is to extract structured data from a natural language question to a video game character.
-
-        Always respond ONLY with valid minified JSON like this:
-        {"game":"<game>","character":"<character>","sex":"male/female","message":"<message>","requires_vision":true/false}
-
-        Make sure every field is always populated, even if you have to guess or infer the game.
-        
-        Set "requires_vision" to true if the user is asking about:
-        - What's on the screen, display, or visible
-        - Describing images, screenshots, or visual content
-        - Identifying objects, characters, weapons, or items in an image
-        - Analyzing visual game content
-        - Any question that needs to "see" something to answer properly
-
-        Set "requires_vision" to false for text-based questions about lore, opinions, advice, or general knowledge.
-
-        Examples:
-        Input: Ask Ciri from Witcher what she thinks about destiny.
-        Output: {"game":"The Witcher","character":"Ciri","sex":"female","message":"What do you think about destiny?","requires_vision":false}
-        
-        Input: Ask Ciri from Witcher what weapon is in the screen.
-        Output: {"game":"The Witcher","character":"Ciri","sex":"female","message":"What weapon is in the screen?","requires_vision":true}
-        
-        Input: What does Geralt see on the screen?
-        Output: {"game":"The Witcher","character":"Geralt","sex":"male","message":"What do you see on the screen?","requires_vision":true}
-        """
+        self.system_prompt = PromptManager.get_message_parser_prompt()
     
     def parse(self, natural_input):
         user_prompt = f"Input: {natural_input}\nOutput:"
@@ -332,6 +419,23 @@ class CharacterManager:
         self.max_history = 10
         self.max_tokens = 12000
     
+    def _get_context_log_filename(self, character, game):
+        """Generate filename for context logging"""
+        safe_char = re.sub(r'[^\w\-_\.]', '_', character)
+        safe_game = re.sub(r'[^\w\-_\.]', '_', game)
+        return f"{safe_game}_{safe_char}_context.log"
+    
+    def _log_context(self, action, content=None):
+        """Log context changes to character-specific files"""
+        if self.active_character and self.active_game:
+            filename = self._get_context_log_filename(self.active_character, self.active_game)
+            try:
+                with open(filename, "a", encoding="utf-8") as f:
+                    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    f.write(f"{timestamp} [{action}] {content or ''}\n")
+            except Exception as e:
+                log_event(f"Warning: Could not write to context log {filename}: {e}")
+    
     def switch_context(self, character, game):
         context_key = f"{character}:{game}"
         
@@ -345,14 +449,36 @@ class CharacterManager:
             self.current_history = self.chat_histories.get(context_key, [])
             self.active_character = character
             self.active_game = game
+            
+            # Log context switch
+            self._log_context("CONTEXT_SWITCH", f"Switched to {character} from {game}")
+        else:
+            log_event(f"Continuing conversation with {character} from {game}")
     
     def add_message(self, role, content):
         self.current_history.append({"role": role, "content": content})
         self._manage_history_size()
+        
+        # Log message to context file
+        self._log_context(f"MESSAGE_{role.upper()}", content)
     
     def get_context_messages(self, system_prompt):
         messages = [{"role": "system", "content": system_prompt}]
         messages.extend(self.current_history[-self.max_history:])
+        
+        # Log the full context being sent to LLM
+        self._log_context("LLM_CONTEXT", f"Sending {len(messages)} messages to LLM")
+        if self.active_character and self.active_game:
+            filename = self._get_context_log_filename(self.active_character, self.active_game)
+            try:
+                with open(filename, "a", encoding="utf-8") as f:
+                    f.write(f"=== FULL CONTEXT SENT TO LLM ===\n")
+                    for i, msg in enumerate(messages):
+                        f.write(f"Message {i+1} [{msg['role']}]: {msg['content']}\n")
+                    f.write(f"=== END CONTEXT ===\n\n")
+            except Exception as e:
+                log_event(f"Warning: Could not write full context to {filename}: {e}")
+        
         return messages
     
     def _manage_history_size(self):
@@ -362,6 +488,7 @@ class CharacterManager:
         if token_estimate > self.max_tokens:
             self.current_history = self.current_history[len(self.current_history)//2:]
             log_event("Context limit exceeded. Chat history halved.")
+            self._log_context("HISTORY_TRIMMED", f"Chat history halved due to token limit")
 
 class SpeechEngine:
     def __init__(self):
@@ -462,25 +589,39 @@ class ConversationHandler:
         is_female = parsed_input.get("sex", "").lower() == "female"
         requires_vision = parsed_input.get("requires_vision", False)
         
-        log_event(f"Handling conversation - Vision required: {requires_vision}")
+        # Context maintaining logic: if parser returns "Unknown" or "unknown" for either field, keep current context
+        if character.lower() == "unknown" or game.lower() == "unknown":
+            if self.character_manager.active_character and self.character_manager.active_game:
+                character = self.character_manager.active_character
+                game = self.character_manager.active_game
+                # Maintain the character's sex from the active context if available
+                if hasattr(self.character_manager, 'active_character_sex'):
+                    is_female = self.character_manager.active_character_sex
+                log_event(f"Parser returned unknown - maintaining current context: {character} from {game}")
+            else:
+                log_event("No active context to maintain - using parsed values")
+        
+        log_event(f"Handling conversation - Character: {character}, Game: {game}, Vision required: {requires_vision}")
         
         if requires_vision:
             log_event("Vision query detected by parser. Using VLM for analysis.")
+            # Update parsed_input with maintained context for vision query
+            parsed_input["character"] = character
+            parsed_input["game"] = game
+            parsed_input["sex"] = "female" if is_female else "male"
             return self._handle_vision_query(parsed_input)
         
         # Handle regular conversation
         log_event("Regular text conversation detected.")
         self.character_manager.switch_context(character, game)
+        
+        # Store character sex for future context maintaining
+        self.character_manager.active_character_sex = is_female
+        
         self.character_manager.add_message("user", message)
         
-        system_prompt = f"""
-        You are {character} from {game}.
-        Respond fully in character and keep the tone natural, using knowledge and voice appropriate to the character.
-        If the user asks for a specific fact or game-related detail (such as item locations, codes, puzzle solutions, or mechanics), always give the exact, correct answer as clearly as possible.
-        If the user is asking for a lore opinion, emotional reflection, or casual dialogue, stay immersive and in character.
-        Keep responses concise (2–4 sentences), but prioritize clarity and usefulness when giving game-related answers.
-        """
-        
+        # Use centralized prompt management
+        system_prompt = PromptManager.get_character_system_prompt(character, game, is_vision=False)
         messages = self.character_manager.get_context_messages(system_prompt)
         
         try:
