@@ -5,12 +5,12 @@
   "functions": [
     {
       "name": "talk",
-      "description": "Have a spoken conversation with a video game character. Ask lore questions or interact naturally. Example: 'LoreMaster, ask Ciri what she thinks about destiny.' or 'LoreMaster, talk to Geralt about monsters.'",
+      "description": "Have a spoken conversation with a video game character. Ask lore questions or interact naturally. Example: 'LoreMaster, ask a warrior character about their quest.' or 'LoreMaster, talk to a mage about magic.'",
       "tags": ["dialogue", "npc", "lore", "conversation", "game"],
       "properties": {
         "input": {
           "type": "string",
-          "description": "The full user prompt, e.g. 'Ask Radahn from Elden Ring why he stopped the stars.'"
+          "description": "The full user prompt, e.g. 'Ask a wizard character why they chose to study magic.'"
         }
       }
     }

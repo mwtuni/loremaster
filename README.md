@@ -1,12 +1,12 @@
 # LoreMaster Plugin for NVIDIA G-Assist
 
 **Talk to your favorite game characters using natural language.**
-LoreMaster brings game characters to life using voice synthesis and GPT-4o integration. Ask lore questions, request puzzle solutions, or just challenge Cloud about his oversized sword.
+LoreMaster brings game characters to life using voice synthesis and GPT-4o integration. Ask lore questions, request puzzle solutions, or engage with warrior, mage, and other character archetypes.
 
 Built in under 24 hours for the [NVIDIA Project G-Assist Hackathon](https://developer.nvidia.com/g-assist-hackathon)
 Tag: `#AIonRTXHackathon` • Twitter: [@NVIDIAGeForce](https://twitter.com/NVIDIAGeForce)
 
-![Cloud holding a sword](resources/cloud_holding_a_sword.png)
+**Disclaimer**: This plugin is not affiliated with any game companies. Character names and game titles are the property of their respective owners.
 
 ---
 
@@ -86,11 +86,11 @@ Restart G-Assist to enable the plugin.
 ## Example Commands
 
 ```text
-/loremaster cloud of ff7, what about the sword?! compensating much?
-/loremaster vincent of ff7, tell me the correct notes to unlock your ultimate weapon
-/loremaster aerith, what do you really think about the sword?
+/loremaster ask a warrior character about their legendary weapon
+/loremaster ask a mysterious character about unlocking hidden treasures
+/loremaster ask a healer character what they think about combat
 /loremaster set style sarcastic
-/loremaster cloud, do you even know how to use that thing?
+/loremaster ask a knight character if they know proper sword techniques
 ```
 
 ---
@@ -131,3 +131,5 @@ Repo: [https://github.com/mwtuni/loremaster](https://github.com/mwtuni/loremaste
 ## License
 
 This project is licensed under the MIT License. See `LICENSE` file for details.
+
+**Legal Disclaimer**: This software is not affiliated with any game companies or publishers. All game titles, character names, and related intellectual property are the property of their respective owners. This plugin is intended for personal, educational, and transformative use only. Users are responsible for ensuring their use complies with applicable copyright and trademark laws.

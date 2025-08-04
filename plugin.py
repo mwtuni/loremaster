@@ -298,7 +298,7 @@ def main():
 
 def selftest():
     log_event("Running selftest...")
-    example_input = {"input": "Ask Ciri from Witcher what she thinks about destiny."}
+    example_input = {"input": "Ask a warrior character about their quest for justice."}
     response = talk(example_input)
     log_event(f"Selftest result: {response}")
 
