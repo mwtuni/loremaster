@@ -1,0 +1,18 @@
+{
+  "manifestVersion": 1,
+  "executable": "g-assist-plugin-loremaster.exe",
+  "persistent": true,
+  "functions": [
+    {
+      "name": "talk",
+      "description": "Have a spoken conversation with a video game character. Ask lore questions or interact naturally. Example: 'LoreMaster, ask Artemis what she thinks about destiny.' or 'LoreMaster, talk to Ares about battles.'",
+      "tags": ["dialogue", "npc", "lore", "conversation", "game"],
+      "properties": {
+        "input": {
+          "type": "string",
+          "description": "The full user prompt, e.g. 'Ask Atlas from Greek Mythology why he holds up the heavens.'"
+        }
+      }
+    }
+  ]
+}

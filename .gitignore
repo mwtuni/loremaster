@@ -1,0 +1,7 @@
+.venv
+*.log
+*.png
+build
+dist
+logs
+__pycache__

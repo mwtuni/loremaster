@@ -1,0 +1,15 @@
+{
+  "OPENAI_API_KEY": "",
+  "llm": {
+    "llm_provider": "ollama",
+    "openai_model": "gpt-4o",
+    "ollama_model": "llama3.2"
+  },
+  "vision": {
+    "vision_provider": "ollama",
+    "openai_vision_model": "gpt-4o",
+    "ollama_vision_model": "llava:13b",
+    "screenshot_size": [512, 512],
+    "screenshot_quality": 85
+  }
+}
