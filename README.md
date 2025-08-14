@@ -1,7 +1,7 @@
-# LoreMaster Plugin for NVIDIA G-Assist
+# LoreMaster Plugin for NVIDIA G-Assist - Games Talk Back!
 
 **Talk to your favorite game characters using natural language.**
-LoreMaster brings game characters to life using real-time voice synthesis, GPT-4o or Ollama-based LLMs, and now Vision-Language Models (VLMs). Ask lore questions, request puzzle solutions, or challenge Zeus about his mighty lightning bolt — — and if the question requires it, game characters can literally see your screen. Ask things like, "Look at that — what monster is it?!"
+LoreMaster brings game characters to life using real-time voice synthesis, GPT-4o or Ollama-based LLMs, and now Vision-Language Models (VLMs). Ask lore questions, request puzzle solutions, or challenge your game character about his oversized weapon. If the question requires it, game characters can literally see your screen. Ask things like, "Look at that — what monster is it?!"
 
 Built in under 24 hours for the [NVIDIA Project G-Assist Hackathon](https://developer.nvidia.com/g-assist-hackathon), but still evolving here in dev!
 Tag: `#AIonRTXHackathon @NVIDIAGeForce`
@@ -37,7 +37,6 @@ This script:
 * Installs dependencies from `requirements.txt`
 
 > Requires Python 3.10+
-> Ensure `OPENAI_API_KEY` is set in your environment
 
 ---
 
@@ -77,12 +76,8 @@ Restart G-Assist to enable the plugin.
 ## Example Commands
 
 ```text
-/loremaster zeus of ancient mythology, what about the lightning bolt?! show me your power!
-/loremaster hades of greek legends, tell me the secrets to unlock the underworld
-/loremaster aphrodite, what do you really think about love?
-/loremaster set style sarcastic
-/loremaster ares, do you even know how to use that weapon?
-/loremaster what monster is that?
+/loremaster Hey what is the optimal strategy to beat that boss?
+/loremaster Why is your sword so large? Compensating something?
 ```
 
 ## Dev branch features:
@@ -119,6 +114,12 @@ Intelligent routing: LoreMaster determines when vision is required via LLM parsi
     "screenshot_quality": 85
   }
 }
+
+* Optimal Ollama Setup for Low VRAM
+
+If you’re running local Ollama models on a GPU with limited VRAM, use the same model for both LLM and VLM — e.g., llava:13b or llava:7b.
+
+This avoids reloading multiple large models in sequence, which can cause severe slowdowns or timeouts.
 
 * Improved context handling:
 Full memory continuity across both text and vision messages
@@ -332,7 +333,12 @@ classDiagram
 ```
 
 ---
+## Planned and upcoming features:
+* Character-initiated speech triggers — Characters can start speaking in response to in-game events, such as reacting when the player zooms the camera in on them repeatedly (Speech-only — plugin cannot initiate new text outputs in G-Assist yet.)
+* Per-game preset packs with tailored personalities and responses.
+* Dynamic emotion-aware voice synthesis for more immersive dialogue.
 
+---
 ## User Responsibility and Disclaimer
 
 **IMPORTANT**: Users are solely responsible for how they use this plugin and must respect all applicable laws and intellectual property rights. LoreMaster is a general-purpose AI conversation tool that can simulate any character or personality based on user input.
