@@ -3,12 +3,12 @@
   "llm": {
     "llm_provider": "ollama",
     "openai_model": "gpt-4o",
-    "ollama_model": "llama3.2"
+    "ollama_model": "llava:7b"
   },
   "vision": {
     "vision_provider": "ollama",
     "openai_vision_model": "gpt-4o",
-    "ollama_vision_model": "llava:13b",
+    "ollama_vision_model": "llava:7b",
     "screenshot_size": [512, 512],
     "screenshot_quality": 85
   }
