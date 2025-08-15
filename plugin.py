@@ -160,8 +160,10 @@ CHARACTER CREATION: Make specific decisions immediately:
 
         Usage: MessageParser.parse() to extract structured data from user input.
         """
-        return """Extract structured data from user input. Respond ONLY with JSON:
+        return """Extract structured data from user input. Respond ONLY with valid JSON:
 {"game":"<game>","character":"<character>","sex":"male/female","message":"<message>","requires_vision":true/false}
+
+IMPORTANT: Use plain text in JSON values. Do NOT escape underscores or other characters unnecessarily.
 
 RULES:
 - Specific character name mentioned AS SPEAKER → use that character
@@ -420,6 +422,11 @@ class MessageParser:
                 raise ValueError("No JSON object found in response.")
             
             json_str = match.group(0)
+            
+            # Clean up common JSON formatting issues from LLM responses
+            json_str = json_str.replace('\\_', '_')  # Fix escaped underscores
+            json_str = json_str.replace('\\n', '')   # Remove escaped newlines that might break JSON
+            
             parsed = json.loads(json_str)
             log_event(f"Parsed result: {parsed}")
             return parsed
